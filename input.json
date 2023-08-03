@@ -1,0 +1,42 @@
+[
+  {
+    "fileName": "multi_sphere",
+    "fileExt": ".fbx",
+    "cooked": true
+  },
+  {
+    "fileName": "box16",
+    "fileExt": ".txt",
+    "cooked": true
+  },
+  {
+    "fileName": "box",
+    "fileExt": ".txt",
+    "cooked": true
+  },
+  {
+    "fileName": "ps2_sphere_deform",
+    "fileExt": ".obj",
+    "cooked": true
+  },
+  {
+    "fileName": "ps2_sphere",
+    "fileExt": ".obj",
+    "cooked": true
+  },
+  {
+    "fileName": "torus",
+    "fileExt": ".fbx",
+    "cooked": true
+  },
+  {
+    "fileName": "room",
+    "fileExt": ".fbx",
+    "cooked": true
+  },
+  {
+    "fileName": "body",
+    "fileExt": ".fbx",
+    "cooked": true
+  }
+]
