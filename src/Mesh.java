@@ -89,12 +89,12 @@ class Mesh {
             if (normals.size() != 0) {
                normals_i.add(normals.get(index));
             }
-            if (bones.size() != 0)
+            if (bones != null && bones.size() != 0)
             {
                bones_i.add(bones.get(index));
             }
 
-            if (weights.size() != 0)
+            if (weights != null && weights.size() != 0)
             {
                weights_i.add(weights.get(index));
             }
@@ -211,12 +211,13 @@ class Mesh {
       {
          code |= 0x10;
       }
-
-      if (bones.size() != 0 && weights.size() != 0)
+      if (bones != null && weights != null)
       {
-         code |= 0x20;
+         if (bones.size() != 0 && weights.size() != 0)
+         {
+            code |= 0x20;
+         }
       }
-
 
       return code;
    }
@@ -273,9 +274,7 @@ class Mesh {
                // temp.DumpVector();
             }
 
-            if (j+1 == chunks && ret[0])
-            {}
-            else
+            if (j+1 != chunks && !ret[0])
                dos.writeInt(badbeef);
 
             if (normals.size() != 0) {
@@ -292,9 +291,7 @@ class Mesh {
                }
 
 
-               if (j+1 == chunks && ret[2])
-               {}
-               else
+               if (j+1 != chunks && !ret[2])
                   dos.writeInt(badbeef);
 
             }
@@ -313,14 +310,12 @@ class Mesh {
 
 
                   //System.out.println("here");
-               if (j+1 == chunks && ret[1])
-               {}
-               else
+               if (j+1 != chunks && !ret[1])
                   dos.writeInt(badbeef);
 
             }
 
-            if (bones.size() != 0)
+            if (bones != null && bones.size() != 0)
             {
                dos.writeByte(0x06);
                dos.writeInt(vertsNormTexSize);
@@ -336,7 +331,7 @@ class Mesh {
 
             }
 
-            if (weights.size() != 0)
+            if (weights != null &&weights.size() != 0)
             {
                dos.writeByte(0x07);
                dos.writeInt(vertsNormTexSize);
