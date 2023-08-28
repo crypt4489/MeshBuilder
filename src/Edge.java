@@ -34,7 +34,8 @@ class Edge
       
       Edge e1 = (Edge)o;
       
-      return Integer.compare(this.v1, e1.v1) == 0 && Integer.compare(this.v2, e1.v2) == 0;
+      return ((Integer.compare(this.v1, e1.v1) == 0 && Integer.compare(this.v2, e1.v2) == 0) ||
+               (Integer.compare(this.v2, e1.v1) == 0 && Integer.compare(this.v1, e1.v2) == 0)) ;
    }
 
    
