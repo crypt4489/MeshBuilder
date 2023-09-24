@@ -10,15 +10,13 @@ import java.io.IOException;
 import java.io.FileOutputStream;
 import java.io.DataOutputStream;
 
-
-
 class Mesh {
 
    public ArrayList<Integer> indices = new ArrayList<Integer>();
    public ArrayList<Vector> vertices = new ArrayList<Vector>();
    public ArrayList<Vector> texCoords = new ArrayList<Vector>();
    public ArrayList<Vector> normals = new ArrayList<Vector>();
-   public ArrayList<VectorInt> bones; //= new ArrayList<VectorInt>();
+   public ArrayList<VectorInt> bones; // = new ArrayList<VectorInt>();
    public ArrayList<Vector> weights;// = new ArrayList<Vector>();
 
    public ArrayList<Vector> vertices_i = new ArrayList<Vector>();
@@ -39,19 +37,19 @@ class Mesh {
 
    private boolean createdAnim = false;
 
+   private boolean useIndices = false;
+
    public Mesh() {
-      this.meshName= null;
+      this.meshName = null;
    }
 
    public Mesh(String _name) {
       this.meshName = _name;
    }
 
-   public AnimationData findAnimDataByName(String name)
-   {
+   public AnimationData findAnimDataByName(String name) {
 
-      for (AnimationData data : this.animData)
-      {
+      for (AnimationData data : this.animData) {
          if (data.CompareAnimName(name))
             return data;
       }
@@ -59,10 +57,8 @@ class Mesh {
       return null;
    }
 
-   public void CreateAnimationStructures()
-   {
-      if (!createdAnim)
-      {
+   public void CreateAnimationStructures() {
+      if (!createdAnim) {
          this.bones_i = new ArrayList<VectorInt>();
          this.weights_i = new ArrayList<Vector>();
 
@@ -75,41 +71,37 @@ class Mesh {
       }
    }
 
-
    public void byIndices() {
-
-         for (int i = 0; i < indices.size(); i++) {
-            int index = indices.get(i);
-            if (vertices.size() != 0) {
-               vertices_i.add(vertices.get(index));
-            }
-            if (texCoords.size() != 0) {
-               texCoords_i.add(texCoords.get(index));
-            }
-            if (normals.size() != 0) {
-               normals_i.add(normals.get(index));
-            }
-            if (bones != null && bones.size() != 0)
-            {
-               bones_i.add(bones.get(index));
-            }
-
-            if (weights != null && weights.size() != 0)
-            {
-               weights_i.add(weights.get(index));
-            }
-           // System.out.print((index) + " ");
+      this.useIndices = true;
+      for (int i = 0; i < indices.size(); i++) {
+         int index = indices.get(i);
+         if (vertices.size() != 0) {
+            vertices_i.add(vertices.get(index));
+         }
+         if (texCoords.size() != 0) {
+            texCoords_i.add(texCoords.get(index));
+         }
+         if (normals.size() != 0) {
+            normals_i.add(normals.get(index));
+         }
+         if (bones != null && bones.size() != 0) {
+            bones_i.add(bones.get(index));
          }
 
-         //System.out.println();
+         if (weights != null && weights.size() != 0) {
+            weights_i.add(weights.get(index));
+         }
+         // System.out.print((index) + " ");
+      }
 
-    //  System.out.println(indices.size());
-     // System.out.println(normals_i.size());
-    //  System.out.println(texCoords_i.size());
-    //  System.out.println(vertices_i.size());
-      for (MaterialRange range : materialList)
-      {
-        // range.DumpRange();
+      // System.out.println();
+
+      // System.out.println(indices.size());
+      // System.out.println(normals_i.size());
+      // System.out.println(texCoords_i.size());
+      // System.out.println(vertices_i.size());
+      for (MaterialRange range : materialList) {
+         // range.DumpRange();
       }
    }
 
@@ -164,57 +156,46 @@ class Mesh {
    private final int badbeef = 0xabadbeef;
    private final int fin = 0xFFFF4114;
 
-
-   private boolean[] GetLastElements(short code)
-   {
-      boolean [] ret = new boolean[5];
+   private boolean[] GetLastElements(short code) {
+      boolean[] ret = new boolean[5];
+      // System.out.printf("%x\n", code);
       // just verts
       ret[0] = code == 0x01;
       // last tex
-      ret[1] = ((code & 0x02) == 0x02) && code <= 0x03;
+      ret[1] = ((code & 0x02) == 0x02) && (code & 0x2f) <= 0x03;
       // last normals
-      ret[2] = ((code & 0x04) == 0x04) && code <= 0x07;
+      ret[2] = ((code & 0x04) == 0x04) && (code & 0x2f) <= 0x07;
       // last indices
-      ret[3] = ((code & 0x08) == 0x08) && code <= 0x0f;
+      ret[3] = ((code & 0x08) == 0x08) && (code & 0x2f) <= 0x0f;
       // last animation
-      ret[4] = ((code & 0x20) == 0x20) && ((code <= 0x2f) || (code <= 0x3f));
+      ret[4] = ((code & 0x20) == 0x20);
 
       return ret;
    }
 
-   private short GenerateMeshCode()
-   {
+   private short GenerateMeshCode() {
       short code = 0;
-      if (vertices_i.size() != 0)
-      {
-           code |= 0x01;
+      if (vertices_i.size() != 0) {
+         code |= 0x01;
       }
 
-
-      if (normals_i.size() != 0)
-      {
+      if (normals_i.size() != 0) {
          code |= 0x04;
       }
 
-      if (texCoords_i.size() != 0)
-      {
+      if (texCoords_i.size() != 0) {
          code |= 0x02;
       }
 
-
-      if (indices.size() != 0)
-      {
+      if (indices.size() != 0) {
          code |= 0x08;
       }
 
-      if (materialList.size() != 0)
-      {
+      if (materialList.size() != 0) {
          code |= 0x10;
       }
-      if (bones != null && weights != null)
-      {
-         if (bones.size() != 0 && weights.size() != 0)
-         {
+      if (bones != null && weights != null) {
+         if (bones.size() != 0 && weights.size() != 0) {
             code |= 0x20;
          }
       }
@@ -228,36 +209,33 @@ class Mesh {
          DataOutputStream dos = new DataOutputStream(outputStream);
          dos.writeShort(0xDF01); //
          short code = GenerateMeshCode();
-         boolean [] ret = GetLastElements(code);
+         boolean[] ret = GetLastElements(code);
          dos.writeShort(code);
          dos.writeInt(this.indices.size());
+         dos.writeInt(vertices.size());
          dos.writeInt(badbeef);
 
-
          int vertsNormTexSize = this.indices.size();
-         int endingIndex = this.indices.size()-1;
+         int endingIndex = this.indices.size() - 1;
          int chunks = this.materialList.size();
          int index = 0;
-
+         System.out.println(chunks);
          if (chunks == 0)
             chunks = 1;
 
-         for (int j = 0; j<chunks; j++)
-         {
-            if (materialList.size() > 0)
-            {
+         for (int j = 0; j < chunks; j++) {
+            if (materialList.size() > 0) {
                MaterialRange rang = materialList.get(j);
                dos.writeByte(0x08);
                dos.writeInt(rang.start);
                dos.writeInt(rang.end);
                dos.writeByte(rang.mat.fileName.length());
-               for (byte b : rang.mat.fileName.getBytes())
-               {
+               for (byte b : rang.mat.fileName.getBytes()) {
                   dos.writeByte(b);
                }
-
+               System.out.println(rang.mat.fileName);
                dos.writeInt(badbeef);
-               vertsNormTexSize = (rang.end-rang.start)+1;
+               vertsNormTexSize = (rang.end - rang.start) + 1;
                index = rang.start;
                endingIndex = rang.end;
             }
@@ -270,12 +248,36 @@ class Mesh {
                dos.writeFloat((float) temp.x);
                dos.writeFloat((float) temp.y);
                dos.writeFloat((float) temp.z);
-               //dos.writeFloat((float) temp.w);
+               // dos.writeFloat((float) temp.w);
                // temp.DumpVector();
             }
 
-            if (j+1 != chunks && !ret[0])
+            if (!ret[0]) {
                dos.writeInt(badbeef);
+            } else if (j + 1 < chunks) {
+               dos.writeInt(badbeef);
+            }
+
+            if (texCoords.size() != 0) {
+               dos.writeByte(0x04);
+               dos.writeInt(vertsNormTexSize);
+
+               for (int i = index; i <= endingIndex; i++) {
+                  Vector temp = texCoords_i.get(i);
+                  dos.writeFloat((float) temp.x);
+                  dos.writeFloat((float) temp.y);
+                  // dos.writeFloat((float) temp.z);
+                  // dos.writeFloat((float) temp.w);
+               }
+
+               // System.out.println("here");
+               if (!ret[1]) {
+                  dos.writeInt(badbeef);
+               } else if (j + 1 < chunks) {
+                  dos.writeInt(badbeef);
+               }
+
+            }
 
             if (normals.size() != 0) {
 
@@ -287,36 +289,17 @@ class Mesh {
                   dos.writeFloat((float) temp.x);
                   dos.writeFloat((float) temp.y);
                   dos.writeFloat((float) temp.z);
-                  //dos.writeFloat((float) temp.w);
+                  // dos.writeFloat((float) temp.w);
                }
 
-
-               if (j+1 != chunks && !ret[2])
+               if (!ret[2]) {
                   dos.writeInt(badbeef);
-
-            }
-
-            if (texCoords.size() != 0) {
-               dos.writeByte(0x04);
-               dos.writeInt(vertsNormTexSize);
-
-               for (int i = index; i <= endingIndex; i++) {
-                  Vector temp = texCoords_i.get(i);
-                  dos.writeFloat((float) temp.x);
-                  dos.writeFloat((float) temp.y);
-                 // dos.writeFloat((float) temp.z);
-                  //dos.writeFloat((float) temp.w);
+               } else if (j + 1 < chunks) {
+                  dos.writeInt(badbeef);
                }
-
-
-                  //System.out.println("here");
-               if (j+1 != chunks && !ret[1])
-                  dos.writeInt(badbeef);
-
             }
 
-            if (bones != null && bones.size() != 0)
-            {
+            if (bones != null && bones.size() != 0) {
                dos.writeByte(0x06);
                dos.writeInt(vertsNormTexSize);
                for (int i = index; i <= endingIndex; i++) {
@@ -331,8 +314,7 @@ class Mesh {
 
             }
 
-            if (weights != null &&weights.size() != 0)
-            {
+            if (weights != null && weights.size() != 0) {
                dos.writeByte(0x07);
                dos.writeInt(vertsNormTexSize);
                for (int i = index; i <= endingIndex; i++) {
@@ -342,9 +324,21 @@ class Mesh {
                   dos.writeFloat((float) temp.z);
                   dos.writeFloat((float) temp.w);
                }
-
                dos.writeInt(badbeef);
 
+            }
+
+            dos.writeByte(0x03);
+            dos.writeInt(vertsNormTexSize);
+
+            for (int i = index; i <= endingIndex; i++) {
+               dos.writeInt(indices.get(i));
+            }
+
+            if (!ret[3]) {
+               dos.writeInt(badbeef);
+            } else if (j + 1 < chunks) {
+               dos.writeInt(badbeef);
             }
 
             if (adjArrayList.size() != 0) {
@@ -358,21 +352,18 @@ class Mesh {
                   dos.writeFloat((float) temp.z);
                   dos.writeFloat((float) temp.w);
                }
-
+               System.out.println("adjs");
                dos.writeInt(badbeef);
             }
          }
 
-         if (this.createdAnim)
-         {
-            //write animation data
-            System.out.println("HERE!");
+         if (this.createdAnim) {
+            // write animation data
 
-            //joints
+            // joints
             dos.writeByte(0x09);
             dos.writeInt(this.joints.size());
-            for (Joint joint : this.joints)
-            {
+            for (Joint joint : this.joints) {
                dos.writeByte(joint.id);
                System.out.println(joint.id);
                dos.writeByte(joint.name.length());
@@ -380,16 +371,15 @@ class Mesh {
                WriteMatrixToStream(dos, joint.offset);
             }
 
-            //animation data
+            // animation data
 
-            for (AnimationData data : this.animData)
-            {
+            for (AnimationData data : this.animData) {
                dos.writeInt(badbeef);
                dos.writeByte(0x0A);
                dos.writeInt(data.name.length());
                WriteCharsAsBytes(dos, data.name);
-               dos.writeFloat((float)data.m_Duration);
-               dos.writeFloat((float)data.m_TicksPerSecond);
+               dos.writeFloat((float) data.m_Duration);
+               dos.writeFloat((float) data.m_TicksPerSecond);
                WriteAnimNodesToStream(dos, data.m_RootNode);
                // SRTs
                dos.writeInt(badbeef);
@@ -415,13 +405,10 @@ class Mesh {
       }
    }
 
-   private void WriteCharsAsBytes(DataOutputStream dos, String text)
-   {
-      try
-      {
+   private void WriteCharsAsBytes(DataOutputStream dos, String text) {
+      try {
          int len = text.length();
-         for (int i = 0; i<len; i++)
-         {
+         for (int i = 0; i < len; i++) {
             dos.writeByte(text.charAt(i));
          }
       } catch (IOException e) {
@@ -429,55 +416,47 @@ class Mesh {
       }
    }
 
-   private void WriteSRTToStream(DataOutputStream dos, AnimationData data)
-   {
-      try
-      {
+   private void WriteSRTToStream(DataOutputStream dos, AnimationData data) {
+      try {
          dos.writeInt(data.positions.size());
-         for (Map.Entry<Integer,ArrayList<AnimationData.KeyPosition>> entry : data.positions.entrySet())
-         {
+         for (Map.Entry<Integer, ArrayList<AnimationData.KeyPosition>> entry : data.positions.entrySet()) {
             dos.writeInt(entry.getKey());
             ArrayList<AnimationData.KeyPosition> poses = entry.getValue();
             dos.writeInt(poses.size());
-            for (AnimationData.KeyPosition pos : poses)
-            {
+            for (AnimationData.KeyPosition pos : poses) {
                dos.writeFloat(pos.timeStamp);
-               dos.writeFloat((float)pos.pos.x);
-               dos.writeFloat((float)pos.pos.y);
-               dos.writeFloat((float)pos.pos.z);
-               dos.writeFloat((float)pos.pos.w);
+               dos.writeFloat((float) pos.pos.x);
+               dos.writeFloat((float) pos.pos.y);
+               dos.writeFloat((float) pos.pos.z);
+               dos.writeFloat((float) pos.pos.w);
             }
          }
 
          dos.writeInt(data.rotations.size());
-         for (Map.Entry<Integer,ArrayList<AnimationData.KeyRotation>> entry : data.rotations.entrySet())
-         {
+         for (Map.Entry<Integer, ArrayList<AnimationData.KeyRotation>> entry : data.rotations.entrySet()) {
             dos.writeInt(entry.getKey());
             ArrayList<AnimationData.KeyRotation> rots = entry.getValue();
             dos.writeInt(rots.size());
-            for (AnimationData.KeyRotation rot : rots)
-            {
+            for (AnimationData.KeyRotation rot : rots) {
                dos.writeFloat(rot.timeStamp);
-               dos.writeFloat((float)rot.quat.x);
-               dos.writeFloat((float)rot.quat.y);
-               dos.writeFloat((float)rot.quat.z);
-               dos.writeFloat((float)rot.quat.w);
+               dos.writeFloat((float) rot.quat.x);
+               dos.writeFloat((float) rot.quat.y);
+               dos.writeFloat((float) rot.quat.z);
+               dos.writeFloat((float) rot.quat.w);
             }
          }
 
          dos.writeInt(data.scalings.size());
-         for (Map.Entry<Integer,ArrayList<AnimationData.KeyScaling>> entry : data.scalings.entrySet())
-         {
+         for (Map.Entry<Integer, ArrayList<AnimationData.KeyScaling>> entry : data.scalings.entrySet()) {
             dos.writeInt(entry.getKey());
             ArrayList<AnimationData.KeyScaling> scales = entry.getValue();
             dos.writeInt(scales.size());
-            for (AnimationData.KeyScaling scale : scales)
-            {
+            for (AnimationData.KeyScaling scale : scales) {
                dos.writeFloat(scale.timeStamp);
-               dos.writeFloat((float)scale.scales.x);
-               dos.writeFloat((float)scale.scales.y);
-               dos.writeFloat((float)scale.scales.z);
-               dos.writeFloat((float)scale.scales.w);
+               dos.writeFloat((float) scale.scales.x);
+               dos.writeFloat((float) scale.scales.y);
+               dos.writeFloat((float) scale.scales.z);
+               dos.writeFloat((float) scale.scales.w);
             }
          }
       } catch (IOException e) {
@@ -485,18 +464,15 @@ class Mesh {
       }
    }
 
-   private void WriteAnimNodesToStream(DataOutputStream dos, AnimationData.AssimpNodeData node)
-   {
-      try
-      {
+   private void WriteAnimNodesToStream(DataOutputStream dos, AnimationData.AssimpNodeData node) {
+      try {
          dos.writeInt(node.name.length());
          WriteCharsAsBytes(dos, node.name);
          dos.writeByte(node.childrenCount);
          System.out.println(node.name);
          node.transformation.DumpMatrix();
          WriteMatrixToStream(dos, node.transformation);
-         for (AnimationData.AssimpNodeData child : node.children)
-         {
+         for (AnimationData.AssimpNodeData child : node.children) {
             WriteAnimNodesToStream(dos, child);
          }
       } catch (IOException e) {
@@ -504,29 +480,27 @@ class Mesh {
       }
    }
 
-   private void WriteMatrixToStream(DataOutputStream dos, Matrix m)
-   {
-      try
-      {
-         dos.writeFloat((float)m.row1.x);
-         dos.writeFloat((float)m.row1.y);
-         dos.writeFloat((float)m.row1.z);
-         dos.writeFloat((float)m.row1.w);
+   private void WriteMatrixToStream(DataOutputStream dos, Matrix m) {
+      try {
+         dos.writeFloat((float) m.row1.x);
+         dos.writeFloat((float) m.row1.y);
+         dos.writeFloat((float) m.row1.z);
+         dos.writeFloat((float) m.row1.w);
 
-         dos.writeFloat((float)m.row2.x);
-         dos.writeFloat((float)m.row2.y);
-         dos.writeFloat((float)m.row2.z);
-         dos.writeFloat((float)m.row2.w);
+         dos.writeFloat((float) m.row2.x);
+         dos.writeFloat((float) m.row2.y);
+         dos.writeFloat((float) m.row2.z);
+         dos.writeFloat((float) m.row2.w);
 
-         dos.writeFloat((float)m.row3.x);
-         dos.writeFloat((float)m.row3.y);
-         dos.writeFloat((float)m.row3.z);
-         dos.writeFloat((float)m.row3.w);
+         dos.writeFloat((float) m.row3.x);
+         dos.writeFloat((float) m.row3.y);
+         dos.writeFloat((float) m.row3.z);
+         dos.writeFloat((float) m.row3.w);
 
-         dos.writeFloat((float)m.row4.x);
-         dos.writeFloat((float)m.row4.y);
-         dos.writeFloat((float)m.row4.z);
-         dos.writeFloat((float)m.row4.w);
+         dos.writeFloat((float) m.row4.x);
+         dos.writeFloat((float) m.row4.y);
+         dos.writeFloat((float) m.row4.z);
+         dos.writeFloat((float) m.row4.w);
 
       } catch (IOException e) {
          e.printStackTrace();

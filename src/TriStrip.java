@@ -90,7 +90,7 @@ class TriStrip
             {
                 return 1;
             }
-            
+
             if (tri1.connections < tri2.connections)
             {
                 return -1;
@@ -98,7 +98,7 @@ class TriStrip
 
             return 0;
         }
-    } 
+    }
 
     public static void CreateAdjacencyTris(ArrayList<AdjacentTriangle> faces)
     {
@@ -142,7 +142,7 @@ class TriStrip
                     break;
                 int neighborIndex = ret.getRight();
                 AdjacentTriangle neighbor = tri.adjFaces[neighborIndex];
-                
+
                 int edgeV1 = tri.face.edges[neighborIndex].v1;
                 int edgeV2 = tri.face.edges[neighborIndex].v2;
 
@@ -394,12 +394,12 @@ class TriStrip
 
         TriStrip.CreateAdjacencyTris(triangles);
 
-        PriorityQueue<AdjacentTriangle> triangleQueue = new PriorityQueue<>(triangles.size(), 
+        PriorityQueue<AdjacentTriangle> triangleQueue = new PriorityQueue<>(triangles.size(),
                                                         new AdjacentTriangleComparator());
 
         for (int i = 0; i<triangles.size(); i++)
         {
-             System.out.printf("Face #%d\n", i+1);
+          /*   System.out.printf("Face #%d\n", i+1);
             AdjacentTriangle tri = triangles.get(i);
             tri.face.DumpFace();
             System.out.println("+++++++++++++++");
@@ -407,11 +407,11 @@ class TriStrip
             {
                 if (adj != null)
                     adj.face.DumpFace();
-                else    
+                else
                     System.out.println("null face");
             }
             System.out.println("-------------");
-            
+            */
             triangleQueue.add(triangles.get(i));
         }
 
