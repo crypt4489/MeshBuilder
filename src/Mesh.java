@@ -203,6 +203,11 @@ class Mesh {
       return code;
    }
 
+   private int LittleEndianFloatConv(float f)
+   {
+      return Integer.reverseBytes(Float.floatToIntBits(f));
+   }
+
    public void WriteMeshToBinFile(String filename) {
       try {
          FileOutputStream outputStream = new FileOutputStream(filename);
@@ -211,8 +216,8 @@ class Mesh {
          short code = GenerateMeshCode();
          boolean[] ret = GetLastElements(code);
          dos.writeShort(code);
-         dos.writeInt(this.indices.size());
-         dos.writeInt(vertices.size());
+         dos.writeInt(Integer.reverseBytes(this.indices.size()));
+         dos.writeInt(Integer.reverseBytes(vertices.size()));
          dos.writeInt(badbeef);
 
          int vertsNormTexSize = this.indices.size();
@@ -227,8 +232,8 @@ class Mesh {
             if (materialList.size() > 0) {
                MaterialRange rang = materialList.get(j);
                dos.writeByte(0x08);
-               dos.writeInt(rang.start);
-               dos.writeInt(rang.end);
+               dos.writeInt(Integer.reverseBytes(rang.start));
+               dos.writeInt(Integer.reverseBytes(rang.end));
                dos.writeByte(rang.mat.fileName.length());
                for (byte b : rang.mat.fileName.getBytes()) {
                   dos.writeByte(b);
@@ -241,67 +246,61 @@ class Mesh {
             }
 
             dos.writeByte(0x02);
-            dos.writeInt(vertsNormTexSize);
+            dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
             for (int i = index; i <= endingIndex; i++) {
                Vector temp = vertices_i.get(i);
-               dos.writeFloat((float) temp.x);
-               dos.writeFloat((float) temp.y);
-               dos.writeFloat((float) temp.z);
+               dos.writeInt(LittleEndianFloatConv((float) temp.x));
+               dos.writeInt(LittleEndianFloatConv((float) temp.y));
+               dos.writeInt(LittleEndianFloatConv((float) temp.z));
                // dos.writeFloat((float) temp.w);
                // temp.DumpVector();
             }
 
-            if (!ret[0]) {
-               dos.writeInt(badbeef);
-            } else if (j + 1 < chunks) {
+            if (!ret[0] || j + 1 < chunks) {
                dos.writeInt(badbeef);
             }
 
             if (texCoords.size() != 0) {
                dos.writeByte(0x04);
-               dos.writeInt(vertsNormTexSize);
+               dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
                for (int i = index; i <= endingIndex; i++) {
                   Vector temp = texCoords_i.get(i);
-                  dos.writeFloat((float) temp.x);
-                  dos.writeFloat((float) temp.y);
+                  dos.writeInt(LittleEndianFloatConv((float) temp.x));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.y));
                   // dos.writeFloat((float) temp.z);
                   // dos.writeFloat((float) temp.w);
                }
 
                // System.out.println("here");
-               if (!ret[1]) {
-                  dos.writeInt(badbeef);
-               } else if (j + 1 < chunks) {
+               if (!ret[1]|| j + 1 < chunks) {
                   dos.writeInt(badbeef);
                }
-
             }
+
 
             if (normals.size() != 0) {
 
                dos.writeByte(0x05);
-               dos.writeInt(vertsNormTexSize);
+               dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
                for (int i = index; i <= endingIndex; i++) {
                   Vector temp = normals_i.get(i);
-                  dos.writeFloat((float) temp.x);
-                  dos.writeFloat((float) temp.y);
-                  dos.writeFloat((float) temp.z);
+                  dos.writeInt(LittleEndianFloatConv((float) temp.x));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.y));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.z));
                   // dos.writeFloat((float) temp.w);
                }
 
-               if (!ret[2]) {
-                  dos.writeInt(badbeef);
-               } else if (j + 1 < chunks) {
+               if (!ret[2] || j + 1 < chunks) {
                   dos.writeInt(badbeef);
                }
             }
 
             if (bones != null && bones.size() != 0) {
                dos.writeByte(0x06);
-               dos.writeInt(vertsNormTexSize);
+               dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
                for (int i = index; i <= endingIndex; i++) {
                   VectorInt temp = bones_i.get(i);
                   dos.writeByte(temp.x);
@@ -316,41 +315,39 @@ class Mesh {
 
             if (weights != null && weights.size() != 0) {
                dos.writeByte(0x07);
-               dos.writeInt(vertsNormTexSize);
+               dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
                for (int i = index; i <= endingIndex; i++) {
                   Vector temp = weights_i.get(i);
-                  dos.writeFloat((float) temp.x);
-                  dos.writeFloat((float) temp.y);
-                  dos.writeFloat((float) temp.z);
-                  dos.writeFloat((float) temp.w);
+                  dos.writeInt(LittleEndianFloatConv((float) temp.x));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.y));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.z));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.w));
                }
                dos.writeInt(badbeef);
 
             }
 
             dos.writeByte(0x03);
-            dos.writeInt(vertsNormTexSize);
+            dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
             for (int i = index; i <= endingIndex; i++) {
-               dos.writeInt(indices.get(i));
+               dos.writeInt(Integer.reverseBytes(indices.get(i)));
             }
 
-            if (!ret[3]) {
-               dos.writeInt(badbeef);
-            } else if (j + 1 < chunks) {
-               dos.writeInt(badbeef);
+            if (!ret[3] || j + 1 < chunks) {
+                  dos.writeInt(badbeef);
             }
 
             if (adjArrayList.size() != 0) {
                dos.writeByte(0x07);
-               dos.writeInt(adjArrayList.size());
+               dos.writeInt(Integer.reverseBytes(adjArrayList.size()));
 
                for (int i = 0; i < adjArrayList.size(); i++) {
                   Vector temp = adjArrayList.get(i);
-                  dos.writeFloat((float) temp.x);
-                  dos.writeFloat((float) temp.y);
-                  dos.writeFloat((float) temp.z);
-                  dos.writeFloat((float) temp.w);
+                  dos.writeInt(LittleEndianFloatConv((float) temp.x));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.y));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.z));
+                  dos.writeInt(LittleEndianFloatConv((float) temp.w));
                }
                System.out.println("adjs");
                dos.writeInt(badbeef);
@@ -362,7 +359,7 @@ class Mesh {
 
             // joints
             dos.writeByte(0x09);
-            dos.writeInt(this.joints.size());
+            dos.writeInt(Integer.reverseBytes(this.joints.size()));
             for (Joint joint : this.joints) {
                dos.writeByte(joint.id);
                System.out.println(joint.id);
@@ -376,10 +373,10 @@ class Mesh {
             for (AnimationData data : this.animData) {
                dos.writeInt(badbeef);
                dos.writeByte(0x0A);
-               dos.writeInt(data.name.length());
+               dos.writeInt(Integer.reverseBytes(data.name.length()));
                WriteCharsAsBytes(dos, data.name);
-               dos.writeFloat((float) data.m_Duration);
-               dos.writeFloat((float) data.m_TicksPerSecond);
+               dos.writeInt(LittleEndianFloatConv((float) data.m_Duration));
+               dos.writeInt(LittleEndianFloatConv((float) data.m_TicksPerSecond));
                WriteAnimNodesToStream(dos, data.m_RootNode);
                // SRTs
                dos.writeInt(badbeef);
@@ -418,45 +415,45 @@ class Mesh {
 
    private void WriteSRTToStream(DataOutputStream dos, AnimationData data) {
       try {
-         dos.writeInt(data.positions.size());
+         dos.writeInt(Integer.reverseBytes(data.positions.size()));
          for (Map.Entry<Integer, ArrayList<AnimationData.KeyPosition>> entry : data.positions.entrySet()) {
-            dos.writeInt(entry.getKey());
+            dos.writeInt(Integer.reverseBytes(entry.getKey()));
             ArrayList<AnimationData.KeyPosition> poses = entry.getValue();
-            dos.writeInt(poses.size());
+            dos.writeInt(Integer.reverseBytes(poses.size()));
             for (AnimationData.KeyPosition pos : poses) {
-               dos.writeFloat(pos.timeStamp);
-               dos.writeFloat((float) pos.pos.x);
-               dos.writeFloat((float) pos.pos.y);
-               dos.writeFloat((float) pos.pos.z);
-               dos.writeFloat((float) pos.pos.w);
+               dos.writeInt(LittleEndianFloatConv(pos.timeStamp));
+               dos.writeInt(LittleEndianFloatConv((float) pos.pos.x));
+               dos.writeInt(LittleEndianFloatConv((float) pos.pos.y));
+               dos.writeInt(LittleEndianFloatConv((float) pos.pos.z));
+               dos.writeInt(LittleEndianFloatConv((float) pos.pos.w));
             }
          }
 
-         dos.writeInt(data.rotations.size());
+         dos.writeInt(Integer.reverseBytes(data.rotations.size()));
          for (Map.Entry<Integer, ArrayList<AnimationData.KeyRotation>> entry : data.rotations.entrySet()) {
-            dos.writeInt(entry.getKey());
+            dos.writeInt(Integer.reverseBytes(entry.getKey()));
             ArrayList<AnimationData.KeyRotation> rots = entry.getValue();
-            dos.writeInt(rots.size());
+            dos.writeInt(Integer.reverseBytes(rots.size()));
             for (AnimationData.KeyRotation rot : rots) {
-               dos.writeFloat(rot.timeStamp);
-               dos.writeFloat((float) rot.quat.x);
-               dos.writeFloat((float) rot.quat.y);
-               dos.writeFloat((float) rot.quat.z);
-               dos.writeFloat((float) rot.quat.w);
+               dos.writeInt(LittleEndianFloatConv(rot.timeStamp));
+               dos.writeInt(LittleEndianFloatConv((float) rot.quat.x));
+               dos.writeInt(LittleEndianFloatConv((float) rot.quat.y));
+               dos.writeInt(LittleEndianFloatConv((float) rot.quat.z));
+               dos.writeInt(LittleEndianFloatConv((float) rot.quat.w));
             }
          }
 
-         dos.writeInt(data.scalings.size());
+         dos.writeInt(Integer.reverseBytes(data.scalings.size()));
          for (Map.Entry<Integer, ArrayList<AnimationData.KeyScaling>> entry : data.scalings.entrySet()) {
-            dos.writeInt(entry.getKey());
+            dos.writeInt(Integer.reverseBytes(entry.getKey()));
             ArrayList<AnimationData.KeyScaling> scales = entry.getValue();
-            dos.writeInt(scales.size());
+            dos.writeInt(Integer.reverseBytes(scales.size()));
             for (AnimationData.KeyScaling scale : scales) {
-               dos.writeFloat(scale.timeStamp);
-               dos.writeFloat((float) scale.scales.x);
-               dos.writeFloat((float) scale.scales.y);
-               dos.writeFloat((float) scale.scales.z);
-               dos.writeFloat((float) scale.scales.w);
+               dos.writeInt(LittleEndianFloatConv(scale.timeStamp));
+               dos.writeInt(LittleEndianFloatConv((float) scale.scales.x));
+               dos.writeInt(LittleEndianFloatConv((float) scale.scales.y));
+               dos.writeInt(LittleEndianFloatConv((float) scale.scales.z));
+               dos.writeInt(LittleEndianFloatConv((float) scale.scales.w));
             }
          }
       } catch (IOException e) {
@@ -466,7 +463,7 @@ class Mesh {
 
    private void WriteAnimNodesToStream(DataOutputStream dos, AnimationData.AssimpNodeData node) {
       try {
-         dos.writeInt(node.name.length());
+         dos.writeInt(Integer.reverseBytes(node.name.length()));
          WriteCharsAsBytes(dos, node.name);
          dos.writeByte(node.childrenCount);
          System.out.println(node.name);
@@ -482,25 +479,25 @@ class Mesh {
 
    private void WriteMatrixToStream(DataOutputStream dos, Matrix m) {
       try {
-         dos.writeFloat((float) m.row1.x);
-         dos.writeFloat((float) m.row1.y);
-         dos.writeFloat((float) m.row1.z);
-         dos.writeFloat((float) m.row1.w);
+         dos.writeInt(LittleEndianFloatConv((float) m.row1.x));
+         dos.writeInt(LittleEndianFloatConv((float) m.row1.y));
+         dos.writeInt(LittleEndianFloatConv((float) m.row1.z));
+         dos.writeInt(LittleEndianFloatConv((float) m.row1.w));
 
-         dos.writeFloat((float) m.row2.x);
-         dos.writeFloat((float) m.row2.y);
-         dos.writeFloat((float) m.row2.z);
-         dos.writeFloat((float) m.row2.w);
+         dos.writeInt(LittleEndianFloatConv((float) m.row2.x));
+         dos.writeInt(LittleEndianFloatConv((float) m.row2.y));
+         dos.writeInt(LittleEndianFloatConv((float) m.row2.z));
+         dos.writeInt(LittleEndianFloatConv((float) m.row2.w));
 
-         dos.writeFloat((float) m.row3.x);
-         dos.writeFloat((float) m.row3.y);
-         dos.writeFloat((float) m.row3.z);
-         dos.writeFloat((float) m.row3.w);
+         dos.writeInt(LittleEndianFloatConv((float) m.row3.x));
+         dos.writeInt(LittleEndianFloatConv((float) m.row3.y));
+         dos.writeInt(LittleEndianFloatConv((float) m.row3.z));
+         dos.writeInt(LittleEndianFloatConv((float) m.row3.w));
 
-         dos.writeFloat((float) m.row4.x);
-         dos.writeFloat((float) m.row4.y);
-         dos.writeFloat((float) m.row4.z);
-         dos.writeFloat((float) m.row4.w);
+         dos.writeInt(LittleEndianFloatConv((float) m.row4.x));
+         dos.writeInt(LittleEndianFloatConv((float) m.row4.y));
+         dos.writeInt(LittleEndianFloatConv((float) m.row4.z));
+         dos.writeInt(LittleEndianFloatConv((float) m.row4.w));
 
       } catch (IOException e) {
          e.printStackTrace();
