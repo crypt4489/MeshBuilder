@@ -257,9 +257,7 @@ class Mesh {
                // temp.DumpVector();
             }
 
-            if (!ret[0]) {
-               dos.writeInt(badbeef);
-            } else if (j + 1 < chunks) {
+            if (!ret[0] || j + 1 < chunks) {
                dos.writeInt(badbeef);
             }
 
@@ -276,13 +274,11 @@ class Mesh {
                }
 
                // System.out.println("here");
-               if (!ret[1]) {
-                  dos.writeInt(badbeef);
-               } else if (j + 1 < chunks) {
+               if (!ret[1]|| j + 1 < chunks) {
                   dos.writeInt(badbeef);
                }
-
             }
+
 
             if (normals.size() != 0) {
 
@@ -297,9 +293,7 @@ class Mesh {
                   // dos.writeFloat((float) temp.w);
                }
 
-               if (!ret[2]) {
-                  dos.writeInt(badbeef);
-               } else if (j + 1 < chunks) {
+               if (!ret[2] || j + 1 < chunks) {
                   dos.writeInt(badbeef);
                }
             }
@@ -340,10 +334,8 @@ class Mesh {
                dos.writeInt(Integer.reverseBytes(indices.get(i)));
             }
 
-            if (!ret[3]) {
-               dos.writeInt(badbeef);
-            } else if (j + 1 < chunks) {
-               dos.writeInt(badbeef);
+            if (!ret[3] || j + 1 < chunks) {
+                  dos.writeInt(badbeef);
             }
 
             if (adjArrayList.size() != 0) {
@@ -423,11 +415,11 @@ class Mesh {
 
    private void WriteSRTToStream(DataOutputStream dos, AnimationData data) {
       try {
-         dos.writeInt(data.positions.size());
+         dos.writeInt(Integer.reverseBytes(data.positions.size()));
          for (Map.Entry<Integer, ArrayList<AnimationData.KeyPosition>> entry : data.positions.entrySet()) {
-            dos.writeInt(entry.getKey());
+            dos.writeInt(Integer.reverseBytes(entry.getKey()));
             ArrayList<AnimationData.KeyPosition> poses = entry.getValue();
-            dos.writeInt(poses.size());
+            dos.writeInt(Integer.reverseBytes(poses.size()));
             for (AnimationData.KeyPosition pos : poses) {
                dos.writeInt(LittleEndianFloatConv(pos.timeStamp));
                dos.writeInt(LittleEndianFloatConv((float) pos.pos.x));
@@ -437,11 +429,11 @@ class Mesh {
             }
          }
 
-         dos.writeInt(data.rotations.size());
+         dos.writeInt(Integer.reverseBytes(data.rotations.size()));
          for (Map.Entry<Integer, ArrayList<AnimationData.KeyRotation>> entry : data.rotations.entrySet()) {
-            dos.writeInt(entry.getKey());
+            dos.writeInt(Integer.reverseBytes(entry.getKey()));
             ArrayList<AnimationData.KeyRotation> rots = entry.getValue();
-            dos.writeInt(rots.size());
+            dos.writeInt(Integer.reverseBytes(rots.size()));
             for (AnimationData.KeyRotation rot : rots) {
                dos.writeInt(LittleEndianFloatConv(rot.timeStamp));
                dos.writeInt(LittleEndianFloatConv((float) rot.quat.x));
@@ -451,11 +443,11 @@ class Mesh {
             }
          }
 
-         dos.writeInt(data.scalings.size());
+         dos.writeInt(Integer.reverseBytes(data.scalings.size()));
          for (Map.Entry<Integer, ArrayList<AnimationData.KeyScaling>> entry : data.scalings.entrySet()) {
-            dos.writeInt(entry.getKey());
+            dos.writeInt(Integer.reverseBytes(entry.getKey()));
             ArrayList<AnimationData.KeyScaling> scales = entry.getValue();
-            dos.writeInt(scales.size());
+            dos.writeInt(Integer.reverseBytes(scales.size()));
             for (AnimationData.KeyScaling scale : scales) {
                dos.writeInt(LittleEndianFloatConv(scale.timeStamp));
                dos.writeInt(LittleEndianFloatConv((float) scale.scales.x));
@@ -471,7 +463,7 @@ class Mesh {
 
    private void WriteAnimNodesToStream(DataOutputStream dos, AnimationData.AssimpNodeData node) {
       try {
-         dos.writeInt(node.name.length());
+         dos.writeInt(Integer.reverseBytes(node.name.length()));
          WriteCharsAsBytes(dos, node.name);
          dos.writeByte(node.childrenCount);
          System.out.println(node.name);

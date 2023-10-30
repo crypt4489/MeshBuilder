@@ -38,15 +38,5 @@
     "fileName": "body",
     "fileExt": ".fbx",
     "cooked": true
-  },
-  {
-    "fileName": "perfsphere",
-    "fileExt": ".fbx",
-    "cooked": true
-  },
-  {
-    "fileName": "goblet",
-    "fileExt": ".glb",
-    "cooked": true
   }
 ]
