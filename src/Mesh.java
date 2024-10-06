@@ -231,7 +231,7 @@ class Mesh {
          for (int j = 0; j < chunks; j++) {
             if (materialList.size() > 0) {
                MaterialRange rang = materialList.get(j);
-               dos.writeByte(0x08);
+               dos.writeInt(Integer.reverseBytes(0x08));
                dos.writeInt(Integer.reverseBytes(rang.start));
                dos.writeInt(Integer.reverseBytes(rang.end));
                dos.writeByte(rang.mat.fileName.length());
@@ -245,7 +245,7 @@ class Mesh {
                endingIndex = rang.end;
             }
 
-            dos.writeByte(0x02);
+            dos.writeInt(Integer.reverseBytes(0x02));
             dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
             for (int i = index; i <= endingIndex; i++) {
@@ -262,7 +262,7 @@ class Mesh {
             }
 
             if (texCoords.size() != 0) {
-               dos.writeByte(0x04);
+               dos.writeInt(Integer.reverseBytes(0x04));
                dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
                for (int i = index; i <= endingIndex; i++) {
@@ -282,7 +282,7 @@ class Mesh {
 
             if (normals.size() != 0) {
 
-               dos.writeByte(0x05);
+               dos.writeInt(Integer.reverseBytes(0x05));
                dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
                for (int i = index; i <= endingIndex; i++) {
@@ -299,7 +299,7 @@ class Mesh {
             }
 
             if (bones != null && bones.size() != 0) {
-               dos.writeByte(0x06);
+               dos.writeInt(Integer.reverseBytes(0x06));
                dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
                for (int i = index; i <= endingIndex; i++) {
                   VectorInt temp = bones_i.get(i);
@@ -314,7 +314,7 @@ class Mesh {
             }
 
             if (weights != null && weights.size() != 0) {
-               dos.writeByte(0x07);
+               dos.writeInt(Integer.reverseBytes(0x07));
                dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
                for (int i = index; i <= endingIndex; i++) {
                   Vector temp = weights_i.get(i);
@@ -327,7 +327,7 @@ class Mesh {
 
             }
 
-            dos.writeByte(0x03);
+            dos.writeInt(Integer.reverseBytes(0x03));
             dos.writeInt(Integer.reverseBytes(vertsNormTexSize));
 
             for (int i = index; i <= endingIndex; i++) {
@@ -339,7 +339,7 @@ class Mesh {
             }
 
             if (adjArrayList.size() != 0) {
-               dos.writeByte(0x07);
+               dos.writeInt(Integer.reverseBytes(0x07));
                dos.writeInt(Integer.reverseBytes(adjArrayList.size()));
 
                for (int i = 0; i < adjArrayList.size(); i++) {
@@ -358,7 +358,7 @@ class Mesh {
             // write animation data
 
             // joints
-            dos.writeByte(0x09);
+            dos.writeInt(Integer.reverseBytes(0x09));
             dos.writeInt(Integer.reverseBytes(this.joints.size()));
             for (Joint joint : this.joints) {
                dos.writeByte(joint.id);
@@ -372,7 +372,7 @@ class Mesh {
 
             for (AnimationData data : this.animData) {
                dos.writeInt(badbeef);
-               dos.writeByte(0x0A);
+               dos.writeInt(Integer.reverseBytes(0x0A));
                dos.writeInt(Integer.reverseBytes(data.name.length()));
                WriteCharsAsBytes(dos, data.name);
                dos.writeInt(LittleEndianFloatConv((float) data.m_Duration));
@@ -380,7 +380,7 @@ class Mesh {
                WriteAnimNodesToStream(dos, data.m_RootNode);
                // SRTs
                dos.writeInt(badbeef);
-               dos.writeByte(0x0B);
+               dos.writeInt(Integer.reverseBytes(0x0B));
                WriteSRTToStream(dos, data);
             }
          }
