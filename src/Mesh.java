@@ -238,6 +238,14 @@ class Mesh {
                for (byte b : rang.mat.fileName.getBytes()) {
                   dos.writeByte(b);
                }
+
+               int padding = rang.mat.fileName.length() % 4;
+               if (padding != 0) {
+                  for(int i = 0; i<4-padding; i++)
+                  {
+                     dos.writeByte(0xFF);
+                  }
+               }
                System.out.println(rang.mat.fileName);
                dos.writeInt(badbeef);
                vertsNormTexSize = (rang.end - rang.start) + 1;
@@ -361,10 +369,18 @@ class Mesh {
             dos.writeInt(Integer.reverseBytes(0x09));
             dos.writeInt(Integer.reverseBytes(this.joints.size()));
             for (Joint joint : this.joints) {
-               dos.writeByte(joint.id);
+               dos.writeInt(Integer.reverseBytes(joint.id));
                System.out.println(joint.id);
-               dos.writeByte(joint.name.length());
+               dos.writeInt(Integer.reverseBytes(joint.name.length()));
                WriteCharsAsBytes(dos, joint.name);
+
+               int padding = joint.name.length() % 4;
+               if (padding != 0) {
+                  for(int i = 0; i<4-padding; i++)
+                  {
+                     dos.writeByte(0xFF);
+                  }
+               }
                WriteMatrixToStream(dos, joint.offset);
             }
 
@@ -375,6 +391,15 @@ class Mesh {
                dos.writeInt(Integer.reverseBytes(0x0A));
                dos.writeInt(Integer.reverseBytes(data.name.length()));
                WriteCharsAsBytes(dos, data.name);
+
+               int padding = data.name.length() % 4;
+               if (padding != 0) {
+                  for(int i = 0; i<4-padding; i++)
+                  {
+                     dos.writeByte(0xFF);
+                  }
+               }
+
                dos.writeInt(LittleEndianFloatConv((float) data.m_Duration));
                dos.writeInt(LittleEndianFloatConv((float) data.m_TicksPerSecond));
                WriteAnimNodesToStream(dos, data.m_RootNode);
@@ -465,9 +490,16 @@ class Mesh {
       try {
          dos.writeInt(Integer.reverseBytes(node.name.length()));
          WriteCharsAsBytes(dos, node.name);
-         dos.writeByte(node.childrenCount);
-         System.out.println(node.name);
-         node.transformation.DumpMatrix();
+         int padding = node.name.length() % 4;
+         if (padding != 0) {
+            for(int i = 0; i<4-padding; i++)
+            {
+               dos.writeByte(0xFF);
+            }
+         }
+         dos.writeInt(Integer.reverseBytes(node.childrenCount));
+         //System.out.println(node.name);
+         //node.transformation.DumpMatrix();
          WriteMatrixToStream(dos, node.transformation);
          for (AnimationData.AssimpNodeData child : node.children) {
             WriteAnimNodesToStream(dos, child);
