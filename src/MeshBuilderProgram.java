@@ -7,9 +7,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.assimp.AIMaterial;
-import org.lwjgl.assimp.AIMesh;
-
 import org.lwjgl.assimp.*;
 
 import org.apache.commons.lang3.SystemUtils;
@@ -62,26 +59,15 @@ class MeshJSONData {
 
 }
 
-class AssimpData {
-    public AIMesh inputMesh;
-    public AIMaterial inputMaterial;
-
-    public AssimpData(AIMesh _mesh, AIMaterial _mat) {
-        this.inputMaterial = _mat;
-        this.inputMesh = _mesh;
-    }
-}
-
 public class MeshBuilderProgram {
 
-    public HashMap<String, ArrayList<AssimpData>> assimpMeshes = new HashMap<String, ArrayList<AssimpData>>();
     public String cwd, jsonfile;
     private final String fileSlash;
     private final String outputExt = ".bin";
     private final String inputDir;
     private final String outputDir;
     private MeshJSONData[] data;
-   // private ArrayList<String> modelNames = new ArrayList<String>();
+   
     private ArrayList<Mesh> meshes = new ArrayList<Mesh>();
     private HashMap<String, MatrixTransform> fileTransforms = new HashMap<String, MatrixTransform>();
     private HashMap<String, MatrixTransform> meshTransforms = new HashMap<String, MatrixTransform>();
@@ -164,8 +150,6 @@ public class MeshBuilderProgram {
 
     public void createAssimpDataFromJSON()
     {
-        HashMap<String, Integer> sameMeshNames = new HashMap<String, Integer>();
-        ArrayList<String> currMesh = new ArrayList<String>();
         loader = new AssimpLoader();
         for (MeshJSONData datum : data) {
             if (!(datum.getCooked())) {
@@ -173,51 +157,36 @@ public class MeshBuilderProgram {
                 System.out.println(modelPath);
                 if (!(IsTxtFile(modelPath)))
                 {
-
-
                     loader.initScene(modelPath);
                     PointerBuffer meshes = loader.getMeshesFromScene();
                     PointerBuffer materials = loader.getMaterialsFromScene();
-                    String name = "";
+                    HashMap<String, ArrayList<AssimpData>> assimpMeshes = new HashMap<String, ArrayList<AssimpData>>();
+                
                     for (int i = 0; i < meshes.capacity(); i++) {
-                        AIMesh impMesh = AIMesh.create(meshes.get(i));
-                        AIMaterial material = null;
-                        if (impMesh.mMaterialIndex() >= 0) {
-                            material = AIMaterial.create(materials.get(impMesh.mMaterialIndex()));
-                        }
 
-                        name = impMesh.mName().dataString();
+                        AIMesh impMesh = AIMesh.create(meshes.get(i));
+                        
+                        String name = impMesh.mName().dataString();
 
                         System.out.println(name);
 
-                        if (sameMeshNames.get(name) != null)
-                        {
-                            sameMeshNames.put(name, sameMeshNames.get(name)+1);
-                            name = name + "00" + Integer.toString(sameMeshNames.get(name));
+                        meshTransforms.putIfAbsent(name, fileTransforms.get(datum.getExtName()));
+
+                        AIMaterial material = null;
+
+                        int index = -1;
+
+                        if ((index = impMesh.mMaterialIndex()) >= 0) {
+                            material = AIMaterial.create(materials.get(index));
                         }
 
                         AssimpData assData = new AssimpData(impMesh, material);
 
-                        assimpMeshes.putIfAbsent(name, new ArrayList<AssimpData>());
+                        assimpMeshes.putIfAbsent(name, new ArrayList<AssimpData>()); 
 
-                        assimpMeshes.get(name).add((assData));
-
-                        meshTransforms.putIfAbsent(name, fileTransforms.get(datum.getExtName()));
-
-                        if (!(currMesh.contains(name)))
-                        {
-                            currMesh.add(name);
-                        }
-
+                        assimpMeshes.get(name).add(assData);
                     }
-                    for (String meshName : currMesh)
-                    {
-                        sameMeshNames.putIfAbsent(meshName, 1);
-                    }
-                    currMesh.clear();
-
-
-
+                    createMeshObjectFromAssimp(assimpMeshes);
                 } else {
                     String name = GetMeshName(modelPath);
                     Mesh mesh = new Mesh(name);
@@ -229,37 +198,37 @@ public class MeshBuilderProgram {
     }
 
 
-    public void createMeshObjectsFromAssimp()
-    {
+    public void createMeshObjectFromAssimp(HashMap<String, ArrayList<AssimpData>> assimpMeshes)
+    { 
         for (Map.Entry<String,ArrayList<AssimpData>> element : assimpMeshes.entrySet())
         {
             String name = element.getKey();
-            ArrayList<AssimpData> ptr = element.getValue();
-
+            ArrayList<AssimpData> data = element.getValue();
             Mesh mesh = new Mesh(name);
 
-            if (ptr.size() > 1)
+            if (data.size() > 1)
             {
                 int offsetIndex = 0;
                 int offsetVertex = 0;
-                for (int i = 0; i<ptr.size(); i++)
+                for (int i = 0; i<data.size(); i++)
                 {
-                    AssimpData datum = ptr.get(i);
+                    AssimpData datum = data.get(i);
+                    loader.ai_mesh = datum.inputMesh;
                     AIMaterial mat = datum.inputMaterial;
-                    AIMesh ai_mesh = datum.inputMesh;
                     AIString path = AIString.calloc();
                     Assimp.aiGetMaterialTexture(mat, Assimp.aiTextureType_DIFFUSE, 0, path, (IntBuffer)null, null, null, null, null, null);
                     DMaterial myMat = new DMaterial();
-                    MaterialRange range = new MaterialRange(offsetIndex, 0, myMat);
                     myMat.FindFileName(path);
-                    int ret = loader.createMatMeshFromAiMesh(mesh, ai_mesh, myMat, offsetVertex);
-                    offsetVertex = offsetVertex + ai_mesh.mNumVertices();
+                    MaterialRange range = new MaterialRange(offsetIndex, 0, myMat);
+                    int ret = loader.createMatMeshFromAiMesh(mesh, myMat, offsetVertex);
+                    offsetVertex = offsetVertex + loader.ai_mesh.mNumVertices();
                     offsetIndex = ret + offsetIndex;
                     range.end = offsetIndex-1;
                     mesh.materialList.add(range);
                 }
             } else {
-                loader.createMyMeshFromAiMesh(mesh, ptr.get(0).inputMesh);
+                loader.ai_mesh = data.get(0).inputMesh;
+                loader.createMyMeshFromAiMesh(mesh);
             }
             meshes.add(mesh);
         }
@@ -271,22 +240,33 @@ public class MeshBuilderProgram {
         for (Mesh mesh : meshes)
         {
             mesh.byIndices();
+            
             MatrixTransform trans = meshTransforms.get(mesh.meshName);
 
             if (trans != null)
             {
-                trans.setMesh(mesh);
-                trans.run();
+                try {
+                    trans.setMesh(mesh);
+                    trans.run();
+                    trans.wait();
+                } 
+                catch (InterruptedException e)
+                {
+                    System.err.println(e.getMessage());
+                    e.printStackTrace();
+                }
             }
 
-            String output = cwd + outputDir + mesh.meshName + outputExt;
-            if (sameMeshNames.get(output) == null)
-            {
-                sameMeshNames.put(output, 1);
-            } else {
-                String identifer = "_00" + Integer.toString(sameMeshNames.get(output));
-                output = cwd + outputDir + mesh.meshName + identifer + outputExt;
-            }
+            String name = mesh.meshName;
+
+            sameMeshNames.putIfAbsent(name, 1);
+
+            int size = 1;
+
+            if ((size = sameMeshNames.get(name))> 1)
+                name += "_00" + Integer.toString(size);
+
+            String output = cwd + outputDir + name + outputExt;
 
             mesh.WriteMeshToBinFile(output);
         }
@@ -322,11 +302,8 @@ public class MeshBuilderProgram {
         try {
             data = gson.fromJson(new FileReader(this.jsonfile), MeshJSONData[].class);
             for (MeshJSONData datum : data) {
-
                 if (!(datum.getCooked())) {
                     String modelPath = cwd + inputDir + datum.getfileName() + datum.getExtName();
-                   // modelNames.add(modelPath);
-
                     datum.setfilePath(modelPath);
                     System.out.println(datum.getFilePath());
                 }
@@ -343,13 +320,8 @@ public class MeshBuilderProgram {
 
         createAssimpDataFromJSON();
 
-        createMeshObjectsFromAssimp();
-
         writeMeshesToFile();
 
         cookedAndWriteJSON();
-
-       // assimpMeshes.forEach((name, data) -> System.out.println(name + " " + data.size()));
-
     }
 }

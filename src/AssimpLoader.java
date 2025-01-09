@@ -5,6 +5,15 @@ import java.util.ArrayList;
 
 import org.lwjgl.PointerBuffer;
 
+class AssimpData {
+    public AIMesh inputMesh;
+    public AIMaterial inputMaterial;
+
+    public AssimpData(AIMesh _mesh, AIMaterial _mat) {
+        this.inputMaterial = _mat;
+        this.inputMesh = _mesh;
+    }
+}
 
 class AssimpLoader
 {
@@ -44,7 +53,6 @@ class AssimpLoader
 
             if (meshName.equals(ai_mesh.mName().dataString()))
             {
-                //createMyMeshFromAiMesh(mesh, ai_mesh);
                 if (materials.capacity() > 1)
                 {
                     AIMaterial mat = AIMaterial.create(materials.get(ai_mesh.mMaterialIndex()));
@@ -53,14 +61,15 @@ class AssimpLoader
                     DMaterial myMat = new DMaterial();
                     MaterialRange range = new MaterialRange(offsetIndex, 0, myMat);
                     myMat.FindFileName(path);
-                    int ret = createMatMeshFromAiMesh(mesh, ai_mesh, myMat, offsetVertex);
+                    int ret = createMatMeshFromAiMesh(mesh, myMat, offsetVertex);
                     offsetVertex = offsetVertex + ai_mesh.mNumVertices();
                     offsetIndex = ret + offsetIndex;
                     range.end = offsetIndex-1;
                     mesh.materialList.add(range);
                 } else {
-                    createMyMeshFromAiMesh(mesh, ai_mesh);
+                    createMyMeshFromAiMesh(mesh);
                 }
+                CreateBonesWeightsAnimationDataFromAIMesh(mesh);
             } else {
                 break;
             }
@@ -68,210 +77,22 @@ class AssimpLoader
 
     }
 
-    public int createMatMeshFromAiMesh(Mesh mesh, AIMesh aiMesh, DMaterial mat, int offset)
+    public void CreateBonesWeightsAnimationDataFromAIMesh(Mesh mesh)
     {
-       /*  int numVertices = aiMesh.mNumVertices();
-        AIVector3D.Buffer aiVertices = aiMesh.mVertices();
-        AIVector3D.Buffer aiNormals = aiMesh.mNormals();
-        AIVector3D.Buffer aiTex = aiMesh.mTextureCoords(0);
-
-        System.out.println(numVertices);
-
-        ArrayList<Integer> indices = new ArrayList<Integer>();
-        ArrayList<Vector> vertices = new ArrayList<Vector>();
-        ArrayList<Vector> texCoords = new ArrayList<Vector>();
-        ArrayList<Vector> normals = new ArrayList<Vector>();
-
-        for (int i = 0; i<numVertices; i++)
-        {
-            AIVector3D aiVertex = aiVertices.get();
-            AIVector3D aiNormal = aiNormals.get();
-            AIVector3D aiTexCoord = aiTex.get();
-            //Vector pos = new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f);
-            vertices.add(new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f));
-            normals.add(new Vector(aiNormal.x(), aiNormal.y(), aiNormal.z(), 1.0f));
-            texCoords.add(new Vector(aiTexCoord.x(), aiTexCoord.y(), 1.0f, 1.0f));
-
-
-          //  mesh.vertices.get(i).DumpVector();
-           // mesh.normals.get(i).DumpVector();
-           // mesh.texCoords.get(i).DumpVector();
-        }
-
-        System.out.println(vertices.size());
-        System.out.println(normals.size());
-        System.out.println(texCoords.size());
-        AIFace.Buffer faces = aiMesh.mFaces();
-        for (int i = 0; i < aiMesh.mNumFaces(); i++)
-	    {
-		    AIFace face = faces.get();
-            IntBuffer ai_indices = face.mIndices();
-		    for (int j = 0; j < face.mNumIndices(); j++)
-		    {
-			    indices.add(ai_indices.get(j));
-		    }
-	    }
-
-
-
-        System.out.println(indices.size());
-
-        mesh.matVectors.put(mat, vertices);
-        mesh.matNorms.put(mat, normals);
-        mesh.matTex.put(mat, texCoords);
-        mesh.matIndices.put(mat, indices); */
-
-        System.out.println(mesh.meshName);
-
-        int numVertices = aiMesh.mNumVertices();
-        AIVector3D.Buffer aiVertices = aiMesh.mVertices();
-        AIVector3D.Buffer aiNormals = aiMesh.mNormals();
-        AIVector3D.Buffer aiTex = aiMesh.mTextureCoords(0);
-
-        System.out.println(numVertices);
-
-        for (int i = 0; i<numVertices; i++)
-        {
-            AIVector3D aiVertex = aiVertices.get();
-            AIVector3D aiNormal = aiNormals.get();
-            AIVector3D aiTexCoord = aiTex.get();
-            //Vector pos = new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f);
-            mesh.vertices.add(new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f));
-            mesh.normals.add(new Vector(aiNormal.x(), aiNormal.y(), aiNormal.z(), 1.0f));
-            mesh.texCoords.add(new Vector(aiTexCoord.x(), aiTexCoord.y(), 1.0f, 1.0f));
-
-
-          //  mesh.vertices.get(i).DumpVector();
-           // mesh.normals.get(i).DumpVector();
-           // mesh.texCoords.get(i).DumpVector();
-        }
-
-        System.out.println(mesh.vertices.size());
-        System.out.println(mesh.normals.size());
-        System.out.println(mesh.texCoords.size());
-        AIFace.Buffer faces = aiMesh.mFaces();
-        for (int i = 0; i < aiMesh.mNumFaces(); i++)
-	    {
-		    AIFace face = faces.get();
-            IntBuffer indices = face.mIndices();
-		    for (int j = 0; j < face.mNumIndices(); j++)
-		    {
-			    mesh.indices.add(indices.get(j) + offset);
-		    }
-	    }
         int bonesNum = 0;
         System.out.println("Bones");
-        if ((bonesNum = aiMesh.mNumBones()) != 0)
+        if ((bonesNum = ai_mesh.mNumBones()) != 0)
         {
             mesh.CreateAnimationStructures();
-            for (int j = 0; j<aiMesh.mNumVertices(); j++) {
-                mesh.weights.add(new Vector(0.0, 0.0, 0.0, 1.0f));
-                mesh.bones.add(new VectorInt(-1, -1, -1, -1));
-            }
-            int boneCount = 0;
-
-            PointerBuffer bones = aiMesh.mBones();
-
-            for (int i = 0; i<bonesNum; i++)
-            {
-                AIBone bone = AIBone.create(bones.get(i));
-
-                String name = bone.mName().toString();
-                int boneID = FindJointIndexUsingName(name, mesh.joints);
-                if (boneID == -1)
-                {
-                    AIMatrix4x4 offsetMat = bone.mOffsetMatrix();
-                    Joint joint = new Joint(name, boneCount, Matrix.CreateFromAIMatrix(offsetMat));
-                    mesh.joints.add(joint);
-                    boneCount++;
-                }
-                AIVertexWeight.Buffer weights = bone.mWeights();
-                for (int w = 0; w<bone.mNumWeights(); w++)
-                {
-                    AIVertexWeight weight = weights.get(w);
-                    int vertexID = weight.mVertexId();
-                    float weightVal = weight.mWeight();
-                    SetVertexBoneData(mesh, vertexID, i, weightVal);
-                }
-
-
-            }
-            this.GetAnimationData(mesh);
-            for (Vector weight : mesh.weights)
-            {
-                weight.DumpVector();
-            }
-
-            for(VectorInt bone : mesh.bones)
-            {
-                bone.DumpVector();
-            }
-
-        }
-
-
-
-        System.out.println(mesh.indices.size());
-
-        int ret;
-        ret = (aiMesh.mNumFaces() * 3);
-
-        return ret;
-
-    }
-
-    public void createMyMeshFromAiMesh(Mesh mesh, AIMesh aiMesh)
-    {
-        System.out.println(mesh.meshName);
-        int numVertices = aiMesh.mNumVertices();
-        AIVector3D.Buffer aiVertices = aiMesh.mVertices();
-        AIVector3D.Buffer aiNormals = aiMesh.mNormals();
-        AIVector3D.Buffer aiTex = aiMesh.mTextureCoords(0);
-
-        System.out.println(numVertices);
-
-        for (int i = 0; i<numVertices; i++)
-        {
-            AIVector3D aiVertex = aiVertices.get();
-            AIVector3D aiNormal = aiNormals.get();
-            AIVector3D aiTexCoord = aiTex.get();
-            //Vector pos = new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f);
-            mesh.vertices.add(new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f));
-            mesh.normals.add(new Vector(aiNormal.x(), aiNormal.y(), aiNormal.z(), 1.0f));
-            mesh.texCoords.add(new Vector(aiTexCoord.x(), aiTexCoord.y(), 1.0f, 1.0f));
-
-
-          //  mesh.vertices.get(i).DumpVector();
-           // mesh.normals.get(i).DumpVector();
-           // mesh.texCoords.get(i).DumpVector();
-        }
-
-        System.out.println(mesh.vertices.size());
-        System.out.println(mesh.normals.size());
-        System.out.println(mesh.texCoords.size());
-        AIFace.Buffer faces = aiMesh.mFaces();
-        for (int i = 0; i < aiMesh.mNumFaces(); i++)
-	    {
-		    AIFace face = faces.get();
-            IntBuffer indices = face.mIndices();
-		    for (int j = 0; j < face.mNumIndices(); j++)
-		    {
-			    mesh.indices.add(indices.get(j));
-		    }
-	    }
-
-        int bonesNum = 0;
-        System.out.println("Bones");
-        if ((bonesNum = aiMesh.mNumBones()) != 0)
-        {
-            mesh.CreateAnimationStructures();
-            for (int j = 0; j<aiMesh.mNumVertices(); j++) {
+            
+            for (int j = 0; j<ai_mesh.mNumVertices(); j++) {
                 mesh.weights.add(new Vector(0.0, 0.0, 0.0, 0.0f));
                 mesh.bones.add(new VectorInt(-1, -1, -1, -1));
             }
+
             int boneCount = 0;
 
-            PointerBuffer bones = aiMesh.mBones();
+            PointerBuffer bones = ai_mesh.mBones();
 
             for (int i = 0; i<bonesNum; i++)
             {
@@ -287,7 +108,9 @@ class AssimpLoader
                     mesh.joints.add(joint);
                     boneCount++;
                 }
+                
                 AIVertexWeight.Buffer weights = bone.mWeights();
+
                 for (int w = 0; w<bone.mNumWeights(); w++)
                 {
                     AIVertexWeight weight = weights.get(w);
@@ -295,26 +118,92 @@ class AssimpLoader
                     float weightVal = weight.mWeight();
                     SetVertexBoneData(mesh, vertexID, i, weightVal);
                 }
+            }
 
-            }
-            this.GetAnimationData(mesh);
-           // for (Vector weight : mesh.weights)
-            {
-                //weight.DumpVector();
-            }
+            GetAnimationData(mesh);
 
             System.out.println("Weights count " + mesh.weights.size());
-
-           // for(VectorInt bone : mesh.bones)
-            {
-               // bone.DumpVector();
-            }
-
             System.out.println("Bones count " + mesh.bones.size());
 
         }
+    }
 
-        System.out.println(mesh.indices.size());
+    // create mesh from material (so only add a specific range of vertices)
+    public int createMatMeshFromAiMesh(Mesh mesh, DMaterial mat, int offset)
+    {
+        System.out.println(mesh.meshName);
+
+        int numVertices = ai_mesh.mNumVertices();
+        AIVector3D.Buffer aiVertices = ai_mesh.mVertices();
+        AIVector3D.Buffer aiNormals = ai_mesh.mNormals();
+        AIVector3D.Buffer aiTex = ai_mesh.mTextureCoords(0);
+
+        System.out.println(numVertices);
+
+        // load vertices, normals, and texcoords which are stored by vertex
+        for (int i = 0; i<numVertices; i++)
+        {
+            AIVector3D aiVertex = aiVertices.get();
+            AIVector3D aiNormal = aiNormals.get();
+            AIVector3D aiTexCoord = aiTex.get();
+            mesh.vertices.add(new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f));
+            mesh.normals.add(new Vector(aiNormal.x(), aiNormal.y(), aiNormal.z(), 1.0f));
+            mesh.texCoords.add(new Vector(aiTexCoord.x(), aiTexCoord.y(), 1.0f, 1.0f));
+        }
+
+        System.out.println(mesh.vertices.size());
+        System.out.println(mesh.normals.size());
+        System.out.println(mesh.texCoords.size());
+        AIFace.Buffer faces = ai_mesh.mFaces();
+        for (int i = 0; i < ai_mesh.mNumFaces(); i++)
+	    {
+		    AIFace face = faces.get();
+            IntBuffer indices = face.mIndices();
+		    for (int j = 0; j < face.mNumIndices(); j++)
+		    {
+			    mesh.indices.add(indices.get(j) + offset);
+		    }
+	    }
+        if (offset == 0) CreateBonesWeightsAnimationDataFromAIMesh(mesh);
+        
+        return mesh.indices.size();
+    }
+
+    public void createMyMeshFromAiMesh(Mesh mesh)
+    {
+        System.out.println(mesh.meshName);
+        int numVertices = ai_mesh.mNumVertices();
+        AIVector3D.Buffer aiVertices = ai_mesh.mVertices();
+        AIVector3D.Buffer aiNormals = ai_mesh.mNormals();
+        AIVector3D.Buffer aiTex = ai_mesh.mTextureCoords(0);
+
+        System.out.println(numVertices);
+
+        for (int i = 0; i<numVertices; i++)
+        {
+            AIVector3D aiVertex = aiVertices.get();
+            AIVector3D aiNormal = aiNormals.get();
+            AIVector3D aiTexCoord = aiTex.get();
+            mesh.vertices.add(new Vector(aiVertex.x(), aiVertex.y(), aiVertex.z(), 1.0f));
+            mesh.normals.add(new Vector(aiNormal.x(), aiNormal.y(), aiNormal.z(), 1.0f));
+            mesh.texCoords.add(new Vector(aiTexCoord.x(), aiTexCoord.y(), 1.0f, 1.0f));
+        }
+
+        System.out.println(mesh.vertices.size());
+        System.out.println(mesh.normals.size());
+        System.out.println(mesh.texCoords.size());
+        AIFace.Buffer faces = ai_mesh.mFaces();
+        for (int i = 0; i < ai_mesh.mNumFaces(); i++)
+	    {
+		    AIFace face = faces.get();
+            IntBuffer indices = face.mIndices();
+		    for (int j = 0; j < face.mNumIndices(); j++)
+		    {
+			    mesh.indices.add(indices.get(j));
+		    }
+	    }
+
+        CreateBonesWeightsAnimationDataFromAIMesh(mesh);
     }
 
     private void SetVertexBoneData(Mesh mesh, int vertexIndex, int boneID, float weight)

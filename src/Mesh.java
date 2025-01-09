@@ -72,18 +72,26 @@ class Mesh {
    }
 
    public void byIndices() {
-      this.useIndices = true;
+      
+      if (useIndices) return;
+
+      useIndices = true;
+
       for (int i = 0; i < indices.size(); i++) {
          int index = indices.get(i);
+         
          if (vertices.size() != 0) {
             vertices_i.add(vertices.get(index));
          }
+
          if (texCoords.size() != 0) {
             texCoords_i.add(texCoords.get(index));
          }
+
          if (normals.size() != 0) {
             normals_i.add(normals.get(index));
          }
+
          if (bones != null && bones.size() != 0) {
             bones_i.add(bones.get(index));
          }
@@ -91,17 +99,6 @@ class Mesh {
          if (weights != null && weights.size() != 0) {
             weights_i.add(weights.get(index));
          }
-         // System.out.print((index) + " ");
-      }
-
-      // System.out.println();
-
-      // System.out.println(indices.size());
-      // System.out.println(normals_i.size());
-      // System.out.println(texCoords_i.size());
-      // System.out.println(vertices_i.size());
-      for (MaterialRange range : materialList) {
-         // range.DumpRange();
       }
    }
 
@@ -179,12 +176,12 @@ class Mesh {
          code |= 0x01;
       }
 
-      if (normals_i.size() != 0) {
-         code |= 0x04;
-      }
-
       if (texCoords_i.size() != 0) {
          code |= 0x02;
+      }
+
+      if (normals_i.size() != 0) {
+         code |= 0x04;
       }
 
       if (indices.size() != 0) {
@@ -222,11 +219,12 @@ class Mesh {
 
          int vertsNormTexSize = this.indices.size();
          int endingIndex = this.indices.size() - 1;
-         int chunks = this.materialList.size();
+         
          int index = 0;
+
+         int chunks = this.materialList.size();
          System.out.println(chunks);
-         if (chunks == 0)
-            chunks = 1;
+         if (chunks == 0) chunks = 1;
 
          for (int j = 0; j < chunks; j++) {
             if (materialList.size() > 0) {
@@ -238,14 +236,7 @@ class Mesh {
                for (byte b : rang.mat.fileName.getBytes()) {
                   dos.writeByte(b);
                }
-
-               int padding = rang.mat.fileName.length() % 4;
-               if (padding != 0) {
-                  for(int i = 0; i<4-padding; i++)
-                  {
-                     dos.writeByte(0xFF);
-                  }
-               }
+               Padto4Bytes(dos, rang.mat.fileName.length() % 4);
                System.out.println(rang.mat.fileName);
                dos.writeInt(badbeef);
                vertsNormTexSize = (rang.end - rang.start) + 1;
@@ -261,8 +252,6 @@ class Mesh {
                dos.writeInt(LittleEndianFloatConv((float) temp.x));
                dos.writeInt(LittleEndianFloatConv((float) temp.y));
                dos.writeInt(LittleEndianFloatConv((float) temp.z));
-               // dos.writeFloat((float) temp.w);
-               // temp.DumpVector();
             }
 
             if (!ret[0] || j + 1 < chunks) {
@@ -277,12 +266,9 @@ class Mesh {
                   Vector temp = texCoords_i.get(i);
                   dos.writeInt(LittleEndianFloatConv((float) temp.x));
                   dos.writeInt(LittleEndianFloatConv((float) temp.y));
-                  // dos.writeFloat((float) temp.z);
-                  // dos.writeFloat((float) temp.w);
                }
 
-               // System.out.println("here");
-               if (!ret[1]|| j + 1 < chunks) {
+               if (!ret[1] || j + 1 < chunks) {
                   dos.writeInt(badbeef);
                }
             }
@@ -298,7 +284,6 @@ class Mesh {
                   dos.writeInt(LittleEndianFloatConv((float) temp.x));
                   dos.writeInt(LittleEndianFloatConv((float) temp.y));
                   dos.writeInt(LittleEndianFloatConv((float) temp.z));
-                  // dos.writeFloat((float) temp.w);
                }
 
                if (!ret[2] || j + 1 < chunks) {
@@ -316,9 +301,7 @@ class Mesh {
                   dos.writeByte(temp.z);
                   dos.writeByte(temp.w);
                }
-
                dos.writeInt(badbeef);
-
             }
 
             if (weights != null && weights.size() != 0) {
@@ -332,7 +315,6 @@ class Mesh {
                   dos.writeInt(LittleEndianFloatConv((float) temp.w));
                }
                dos.writeInt(badbeef);
-
             }
 
             dos.writeInt(Integer.reverseBytes(0x03));
@@ -362,7 +344,7 @@ class Mesh {
             }
          }
 
-         if (this.createdAnim) {
+         if (createdAnim) {
             // write animation data
 
             // joints
@@ -370,17 +352,9 @@ class Mesh {
             dos.writeInt(Integer.reverseBytes(this.joints.size()));
             for (Joint joint : this.joints) {
                dos.writeInt(Integer.reverseBytes(joint.id));
-               System.out.println(joint.id);
                dos.writeInt(Integer.reverseBytes(joint.name.length()));
                WriteCharsAsBytes(dos, joint.name);
-
-               int padding = joint.name.length() % 4;
-               if (padding != 0) {
-                  for(int i = 0; i<4-padding; i++)
-                  {
-                     dos.writeByte(0xFF);
-                  }
-               }
+               Padto4Bytes(dos, joint.name.length() % 4);
                WriteMatrixToStream(dos, joint.offset);
             }
 
@@ -391,15 +365,7 @@ class Mesh {
                dos.writeInt(Integer.reverseBytes(0x0A));
                dos.writeInt(Integer.reverseBytes(data.name.length()));
                WriteCharsAsBytes(dos, data.name);
-
-               int padding = data.name.length() % 4;
-               if (padding != 0) {
-                  for(int i = 0; i<4-padding; i++)
-                  {
-                     dos.writeByte(0xFF);
-                  }
-               }
-
+               Padto4Bytes(dos, data.name.length() % 4);
                dos.writeInt(LittleEndianFloatConv((float) data.m_Duration));
                dos.writeInt(LittleEndianFloatConv((float) data.m_TicksPerSecond));
                WriteAnimNodesToStream(dos, data.m_RootNode);
@@ -505,6 +471,22 @@ class Mesh {
             WriteAnimNodesToStream(dos, child);
          }
       } catch (IOException e) {
+         e.printStackTrace();
+      }
+   }
+
+   private void Padto4Bytes(DataOutputStream dos, int padding)
+   {
+      if (padding == 0) return;
+      try
+      {
+         for(int i = 0; i<4-padding; i++)
+         {
+            dos.writeByte(0xFF);
+         }  
+      } 
+      catch (IOException e)
+      {
          e.printStackTrace();
       }
    }

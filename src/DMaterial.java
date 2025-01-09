@@ -15,7 +15,6 @@ public class DMaterial {
 
     public void FindFileName(AIString path)
     {
-        
         String analysis = path.dataString();
         int index = analysis.lastIndexOf(fileSlash);
         if (index < analysis.length() && index >= 0)
