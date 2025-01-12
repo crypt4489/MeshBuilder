@@ -228,7 +228,6 @@ class AssimpLoader
 
     private int FindJointIndexUsingName(String name, ArrayList<Joint> joints)
     {
-
         for (Joint joint : joints)
         {
             if (joint.name.equals(name))

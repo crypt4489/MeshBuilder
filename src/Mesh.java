@@ -153,7 +153,7 @@ class Mesh {
    private final int badbeef = 0xabadbeef;
    private final int fin = 0xFFFF4114;
 
-   private boolean[] GetLastElements(short code) {
+   private boolean[] GetLastElements(int code) {
       boolean[] ret = new boolean[5];
       // System.out.printf("%x\n", code);
       // just verts
@@ -170,8 +170,8 @@ class Mesh {
       return ret;
    }
 
-   private short GenerateMeshCode() {
-      short code = 0;
+   private int GenerateMeshCode() {
+      int code = 0;
       if (vertices_i.size() != 0) {
          code |= 0x01;
       }
@@ -209,10 +209,10 @@ class Mesh {
       try {
          FileOutputStream outputStream = new FileOutputStream(filename);
          DataOutputStream dos = new DataOutputStream(outputStream);
-         dos.writeShort(0xDF01); //
-         short code = GenerateMeshCode();
+         dos.writeInt(Integer.reverseBytes(0xDF01)); //
+         int code = GenerateMeshCode();
          boolean[] ret = GetLastElements(code);
-         dos.writeShort(code);
+         dos.writeInt(Integer.reverseBytes(code));
          dos.writeInt(Integer.reverseBytes(this.indices.size()));
          dos.writeInt(Integer.reverseBytes(vertices.size()));
          dos.writeInt(badbeef);
