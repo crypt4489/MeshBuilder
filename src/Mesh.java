@@ -368,6 +368,7 @@ class Mesh {
                Padto4Bytes(dos, data.name.length() % 4);
                dos.writeInt(LittleEndianFloatConv((float) data.m_Duration));
                dos.writeInt(LittleEndianFloatConv((float) data.m_TicksPerSecond));
+               dos.writeInt(Integer.reverseBytes(data.nodeCount));
                WriteAnimNodesToStream(dos, data.m_RootNode);
                // SRTs
                dos.writeInt(badbeef);

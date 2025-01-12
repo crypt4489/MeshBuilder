@@ -249,7 +249,8 @@ class AssimpLoader
                                             (float)anim.mTicksPerSecond(),
                                             (float)anim.mDuration());
             data.DumpAnimation();
-            ReadHierarchyData(data.m_RootNode, this.ai_scene.mRootNode());
+            data.nodeCount = ReadHierarchyData(data.m_RootNode, this.ai_scene.mRootNode(), data.nodeCount);
+            System.out.printf("The Node Count is TADA : %d\n", data.nodeCount);
             GetAnimationSRT(anim, data, mesh);
             mesh.animData.add(data);
         }
@@ -274,7 +275,7 @@ class AssimpLoader
         }
     }
 
-    private void ReadHierarchyData(AnimationData.AssimpNodeData data, AINode src)
+    private int ReadHierarchyData(AnimationData.AssimpNodeData data, AINode src, int nodeCount)
     {
         data.name = src.mName().dataString();
         data.transformation = Matrix.CreateFromAIMatrix(src.mTransformation());
@@ -285,9 +286,11 @@ class AssimpLoader
         for (int i = 0; i<count; i++)
         {
             AnimationData.AssimpNodeData datum = new AnimationData.AssimpNodeData();
-            ReadHierarchyData(datum, AINode.create(src.mChildren().get(i)));
+            nodeCount = ReadHierarchyData(datum, AINode.create(src.mChildren().get(i)), nodeCount);
             data.AddChildToNodeData(datum);
         }
+
+        return (nodeCount+=1);
     }
 
     private void ReadAnimationData(AnimationData data, AINodeAnim channel, int index)

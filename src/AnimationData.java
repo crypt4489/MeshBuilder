@@ -75,6 +75,7 @@ class AnimationData
     public float m_TicksPerSecond;
     public String name;
     public AssimpNodeData m_RootNode;
+    public int nodeCount;
     public HashMap<Integer, ArrayList<AnimationData.KeyPosition>> positions = new HashMap<Integer, ArrayList<KeyPosition>>();
     public HashMap<Integer, ArrayList<AnimationData.KeyRotation>> rotations = new HashMap<Integer, ArrayList<KeyRotation>>();
     public HashMap<Integer, ArrayList<AnimationData.KeyScaling>> scalings = new HashMap<Integer, ArrayList<KeyScaling>>();
@@ -85,6 +86,7 @@ class AnimationData
         this.m_TicksPerSecond = _ticks;
         this.m_Duration = _duration;
         this.m_RootNode = new AssimpNodeData();
+        this.nodeCount = 0;
     }
 
     public void DumpAnimation()
