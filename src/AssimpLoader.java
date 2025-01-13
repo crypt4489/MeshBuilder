@@ -1,5 +1,7 @@
 import org.lwjgl.assimp.*;
 
+import AnimationData.AssimpNodeData;
+
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 
@@ -242,6 +244,8 @@ class AssimpLoader
     private void GetAnimationData(Mesh mesh)
     {
         int numOfAnims = this.ai_scene.mNumAnimations();
+        mesh.nodeCount = ReadHierarchyData(mesh.m_RootNode, this.ai_scene.mRootNode(), mesh.nodeCount);
+        System.out.printf("The Node Count is TADA : %d\n", mesh.nodeCount);
         for (int i = 0; i<numOfAnims; i++)
         {
             AIAnimation anim = AIAnimation.create(this.ai_scene.mAnimations().get(i));
@@ -249,11 +253,36 @@ class AssimpLoader
                                             (float)anim.mTicksPerSecond(),
                                             (float)anim.mDuration());
             data.DumpAnimation();
-            data.nodeCount = ReadHierarchyData(data.m_RootNode, this.ai_scene.mRootNode(), data.nodeCount);
-            System.out.printf("The Node Count is TADA : %d\n", data.nodeCount);
+            
+            
             GetAnimationSRT(anim, data, mesh);
             mesh.animData.add(data);
         }
+
+       //System.out.printf("IT IS A SHAME %b\n", CompareHierarchies(mesh.animData.get(0).m_RootNode, mesh.animData.get(1).m_RootNode));
+    }
+
+    private boolean CompareHierarchies(AssimpNodeData root1, AssimpNodeData root2)
+    {
+        boolean ret = root1.transformation.equals(root2.transformation) && root1.childrenCount == root2.childrenCount;
+
+        if (!ret)
+        {
+            System.out.printf("Dumping matrices: %s\n", root1.name);
+            System.out.println("Node 1");
+            root1.transformation.DumpMatrix();
+            System.out.println("Node 2");
+            root2.transformation.DumpMatrix();
+            return false;
+        }
+
+        for (int i = 0; i<root1.childrenCount; i++)
+        {
+            ret = CompareHierarchies(root1.children.get(i), root2.children.get(i));
+            if (!ret) break;
+        }
+
+        return ret;
     }
 
     private void GetAnimationSRT(AIAnimation anim, AnimationData data, Mesh mesh)
@@ -275,7 +304,7 @@ class AssimpLoader
         }
     }
 
-    private int ReadHierarchyData(AnimationData.AssimpNodeData data, AINode src, int nodeCount)
+    private int ReadHierarchyData(AssimpNodeData data, AINode src, int nodeCount)
     {
         data.name = src.mName().dataString();
         data.transformation = Matrix.CreateFromAIMatrix(src.mTransformation());
@@ -285,7 +314,7 @@ class AssimpLoader
         data.childrenCount = count;
         for (int i = 0; i<count; i++)
         {
-            AnimationData.AssimpNodeData datum = new AnimationData.AssimpNodeData();
+            AssimpNodeData datum = new AssimpNodeData();
             nodeCount = ReadHierarchyData(datum, AINode.create(src.mChildren().get(i)), nodeCount);
             data.AddChildToNodeData(datum);
         }

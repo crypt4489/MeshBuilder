@@ -86,6 +86,25 @@ class Matrix
          this.row4.DumpVector();
     }
 
+    @Override
+    public boolean equals(Object o) {
+       if (o == this) {
+          return true;
+       }
+       
+       if (!(o instanceof Matrix)) 
+       {
+          return false;
+       }
+       
+       Matrix m = (Matrix)o;
+       
+       return ((this.row1.equals(m.row1)) && 
+       (this.row2.equals(m.row2)) && 
+       (this.row3.equals(m.row3)) && 
+       (this.row4.equals(m.row4)));
+    }
+
 
 
 

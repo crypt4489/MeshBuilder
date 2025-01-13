@@ -1,6 +1,36 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 
+class AssimpNodeData
+{
+    public Matrix transformation;
+    public String name;
+    public int childrenCount;
+    public ArrayList<AssimpNodeData> children;
+
+    public AssimpNodeData()
+    {
+        this.name = "";
+        this.transformation = Matrix.Zero();
+        this.childrenCount = -1;
+        this.children = new ArrayList<AssimpNodeData>();
+    }
+
+    public AssimpNodeData(String _name, Matrix _trans)
+    {
+        this.name = _name;
+        this.transformation = _trans;
+        this.childrenCount = 0;
+        this.children = new ArrayList<AssimpNodeData>();
+    }
+
+    public void AddChildToNodeData(AssimpNodeData child)
+    {
+        this.children.add(child);
+        //this.childrenCount++;
+    }
+}
+
 class AnimationData
 {
     static abstract class AnimationKey
@@ -41,41 +71,12 @@ class AnimationData
         }
     }
 
-    public static class AssimpNodeData
-    {
-        public Matrix transformation;
-        public String name;
-        public int childrenCount;
-        public ArrayList<AssimpNodeData> children;
-
-        public AssimpNodeData()
-        {
-            this.name = "";
-            this.transformation = Matrix.Zero();
-            this.childrenCount = -1;
-            this.children = new ArrayList<AssimpNodeData>();
-        }
-
-        public AssimpNodeData(String _name, Matrix _trans)
-        {
-            this.name = _name;
-            this.transformation = _trans;
-            this.childrenCount = 0;
-            this.children = new ArrayList<AssimpNodeData>();
-        }
-
-        public void AddChildToNodeData(AssimpNodeData child)
-        {
-            this.children.add(child);
-            //this.childrenCount++;
-        }
-    }
+   
 
     public float m_Duration;
     public float m_TicksPerSecond;
     public String name;
-    public AssimpNodeData m_RootNode;
-    public int nodeCount;
+    
     public HashMap<Integer, ArrayList<AnimationData.KeyPosition>> positions = new HashMap<Integer, ArrayList<KeyPosition>>();
     public HashMap<Integer, ArrayList<AnimationData.KeyRotation>> rotations = new HashMap<Integer, ArrayList<KeyRotation>>();
     public HashMap<Integer, ArrayList<AnimationData.KeyScaling>> scalings = new HashMap<Integer, ArrayList<KeyScaling>>();
@@ -85,8 +86,6 @@ class AnimationData
         this.name = _name;
         this.m_TicksPerSecond = _ticks;
         this.m_Duration = _duration;
-        this.m_RootNode = new AssimpNodeData();
-        this.nodeCount = 0;
     }
 
     public void DumpAnimation()

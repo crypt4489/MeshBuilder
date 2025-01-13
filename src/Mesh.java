@@ -33,6 +33,9 @@ class Mesh {
 
    public ArrayList<AnimationData> animData;
 
+   public AssimpNodeData m_RootNode;
+   public int nodeCount;
+   
    public String meshName;
 
    private boolean createdAnim = false;
@@ -68,6 +71,9 @@ class Mesh {
          this.joints = new ArrayList<Joint>();
          this.animData = new ArrayList<AnimationData>();
          createdAnim = true;
+
+         this.m_RootNode = new AssimpNodeData();
+         this.nodeCount = 0;
       }
    }
 
@@ -359,6 +365,10 @@ class Mesh {
             }
 
             // animation data
+            dos.writeInt(badbeef);
+            dos.writeInt(Integer.reverseBytes(0x0C));
+            dos.writeInt(Integer.reverseBytes(nodeCount));
+            WriteAnimNodesToStream(dos, m_RootNode);
 
             for (AnimationData data : this.animData) {
                dos.writeInt(badbeef);
@@ -368,8 +378,7 @@ class Mesh {
                Padto4Bytes(dos, data.name.length() % 4);
                dos.writeInt(LittleEndianFloatConv((float) data.m_Duration));
                dos.writeInt(LittleEndianFloatConv((float) data.m_TicksPerSecond));
-               dos.writeInt(Integer.reverseBytes(data.nodeCount));
-               WriteAnimNodesToStream(dos, data.m_RootNode);
+               
                // SRTs
                dos.writeInt(badbeef);
                dos.writeInt(Integer.reverseBytes(0x0B));
@@ -453,7 +462,7 @@ class Mesh {
       }
    }
 
-   private void WriteAnimNodesToStream(DataOutputStream dos, AnimationData.AssimpNodeData node) {
+   private void WriteAnimNodesToStream(DataOutputStream dos, AssimpNodeData node) {
       try {
          dos.writeInt(Integer.reverseBytes(node.name.length()));
          WriteCharsAsBytes(dos, node.name);
@@ -468,7 +477,7 @@ class Mesh {
          //System.out.println(node.name);
          //node.transformation.DumpMatrix();
          WriteMatrixToStream(dos, node.transformation);
-         for (AnimationData.AssimpNodeData child : node.children) {
+         for (AssimpNodeData child : node.children) {
             WriteAnimNodesToStream(dos, child);
          }
       } catch (IOException e) {
